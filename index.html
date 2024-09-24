@@ -10,7 +10,7 @@
 
 </head>
 <body>
-  <audio id="background-audio" src="img/sound1.mp3" autoplay loop></audio>
+  <!--audio id="background-audio" src="img/sound1.mp3" preload="auto" loop></audio-->
 
   <div id="text-container"></div>
   <div id="squareContainer" class="square-container"></div>
@@ -18,14 +18,9 @@
 <script>
 
 //----------SOUND---------
-    const audio = document.getElementById('background-audio');
-    audio.volume = 0.5;
-
-function playSound() {
-  const sound = document.getElementById('buttonSound');
-  sound.currentTime = 0; // Ensure the sound starts from the beginning
-  sound.play();
-}
+    //const audio = document.getElementById('background-audio');
+    //audio.volume = 0.5;
+    //audio.play();
 
 //----------------------
     var w = window.innerWidth;
@@ -100,6 +95,8 @@ function playSound() {
 }
 
     function setup() {
+      audio.play();
+
       let canvas = createCanvas(windowWidth, windowHeight);
       textAlign(CENTER, CENTER);
 
@@ -421,19 +418,29 @@ function getRandomPosition(element, size) {
 </script>
 
 <div>
-  <a href="text.html" onclick="playSound()"><img src="img/button.png" id="button_white"></a>
+  <a href="text.html" ><img src="img/button.png" id="button_white"></a>
   <img src="img/button-red.png" id="button_red">
 </div>
 
 <!--h2>press Space</h2-->
 <img src="img/TDMovieOut-0.gif" id="human">
 
-<div class="bar-word">
-  <img src="img/bar.png" id="stop-audio-button" onclick="stopAudio()" alt="Stop Audio Button">
+<div class="bar-word" id="play-sound">
+  <img src="img/bar.png" id="stop-audio-button"  alt="Stop Audio Button">
   <h1 id="key">Headphones On!</h1>
   <img src="img/bar-red.png" id="barred">
 </div>
+<script>
+  const audio = new Audio('img/sound1.mp3');
 
+  document.getElementById('play-sound').addEventListener('click', function() {
+      audio.play().catch(error => {
+          console.error('Error playing audio:', error);
+      });
+      audio.volume = 0.5;
+      audio.loop = true;
+  });
+</script>
 <img src="img/frontpage.png" id="macquarium">
 </body>
 </html>
