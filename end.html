@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <title>A3</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        body {
+          background: linear-gradient(0deg, rgba(209,209,209,1) 0%, rgb(248, 248, 248) 100%);
+          background-size: cover;
+          cursor: url(img/cursor.png), auto;
+
+        }
+
+
+        .bar-word{
+  display: flex;
+  width: 15%;
+  height: auto;
+  position: absolute;
+  right: 2vw;
+  top: 4vw;
+
+  justify-content: center;
+  align-items: center;
+}
+#bar{
+  width: 100%;
+  height: auto;
+  position: absolute;
+  
+  z-index: 3;
+  opacity:1;
+}
+#key{
+  color:white;
+  font-weight: lighter;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1.3vw;
+  position: absolute;
+  
+  z-index: 2;
+  
+}
+#barred{
+  width: 100%;
+  height: auto;
+  position: absolute;
+  z-index: 1;
+}
+
+#bar:hover{
+  opacity:0;
+  transition: 0.5s ease-in-out;
+}
+
+#bar2{
+  width: 15%;
+  height: auto;
+  position: absolute;
+  left: 2vw;
+  top: 2vw;
+  z-index: 0;
+}
+
+#button_white{
+  width: 15%;
+  height: auto;
+  position: absolute;
+  right: 1vw;
+  bottom:1vw;
+  z-index: 2;
+  opacity:1;
+
+  cursor: url(img/cursor-pointer.png), auto;
+
+}
+#button_white:hover{
+  opacity:0;
+  transition: 0.5s ease;
+}
+
+#button_red{
+  width: 15%;
+  height: auto;
+  position: absolute;
+  right: 1vw;
+  z-index: 1;
+  bottom:1vw;
+
+}
+    </style>
+</head>
+<body>
+    
+  <audio id="background-audio" src="img/sound1.mp3" autoplay loop></audio>
+
+    <script>
+     const audio = document.getElementById('background-audio');
+     audio.volume = 0.5;
+
+        let scratchCanvas;
+        let revealImage;
+        let scratchImage;
+        let brushSize = 30;
+        let squares = [];
+        const squareCount = 8;
+    
+        let particles = [];
+
+        function preload() {
+            revealImage = loadImage('img/finalpage.png');
+            scratchImage = loadImage('img/finalpage-front.png'); 
+
+          }
+          class Particle {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = random(-1, 1);
+        this.vy = random(-1, 1);
+        this.size = random(2, 5);
+        this.alpha = 255;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x < 0 || this.x > width) this.vx *= -2;
+        if (this.y < 0 || this.y > height) this.vy *= -2;
+
+        this.alpha -= 1.5;
+      }
+
+      display() {
+        noStroke();
+        fill(0, 0, 255, this.alpha);
+        rect(this.x, this.y, this.size+2);
+      }
+
+      isDead() {
+        return this.alpha <= 0;
+      }
+    }
+        function setup() {
+            createCanvas(windowWidth, windowHeight);
+            scratchCanvas = createGraphics(windowWidth, windowHeight);
+            drawScratchImage();
+            for (let i = 0; i < squareCount; i++) {
+                randomizeSquarePosition();
+            }
+        }
+
+        function draw() {
+            clear();
+            noFill();
+ 
+            const revealWidth = revealImage.width;
+            const revealHeight = revealImage.height;
+            const revealAspect = revealWidth / revealHeight;
+
+            const canvasAspect = width / height;
+
+            let imgWidth, imgHeight;
+
+            if (revealAspect > canvasAspect) {
+                imgWidth = width;
+                imgHeight = width / revealAspect;
+            } else {
+                imgHeight = height;
+                imgWidth = height * revealAspect;
+            }
+
+            // Center image
+            const x = (width - imgWidth) / 2;
+            const y = (height - imgHeight) / 2;
+
+            image(revealImage, x, y, imgWidth, imgHeight); 
+            image(scratchCanvas, 0, 0); 
+
+
+            // Draw squares
+            for (let square of squares) {
+                scratchCanvas.erase();
+                scratchCanvas.fill(255,0,0);
+
+
+                scratchCanvas.rect(square.x, square.y, brushSize, brushSize); 
+                scratchCanvas.noErase();
+
+                square.x += random(-20, 20); 
+                square.y += random(-8, 8); 
+
+                //giữ squares floating trong canvas
+                square.x = constrain(square.x, 0, width - brushSize);
+                square.y = constrain(square.y, 0, height - brushSize);
+                
+                scratchCanvas.rect(square.x, square.y, brushSize, brushSize);
+            }
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update();
+        particles[i].display();
+
+        if (particles[i].isDead()) {
+          particles.splice(i, 1);
+        }
+      }
+
+      if (frameCount % 5 === 0) {
+        for (let i = 0; i < 5; i++) {
+          particles.push(new Particle(mouseX, mouseY));
+        }
+      }
+
+            }
+        
+        function randomizeSquarePosition() {
+          let square = {
+                x: random(0, width - brushSize),
+                y: random(0, height - brushSize),
+                dx: random(-5, 5), 
+                dy: random(-5, 5)
+            };
+            squares.push(square);
+        }
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+            scratchCanvas.resizeCanvas(windowWidth, windowHeight); 
+            drawScratchImage();
+        }
+
+        function drawScratchImage() {
+            // Draw the scratch image centered and resized to maintain its aspect ratio
+            const scratchWidth = scratchImage.width;
+            const scratchHeight = scratchImage.height;
+            const scratchAspect = scratchWidth / scratchHeight;
+
+            let imgWidth, imgHeight;
+
+            // Determine new dimensions for the scratch image based on canvas size
+            if (scratchAspect > width / height) {
+                imgWidth = width;
+                imgHeight = width / scratchAspect;
+            } else {
+                imgHeight = height;
+                imgWidth = height * scratchAspect;
+            }
+
+            const x = (width - imgWidth) / 2;
+            const y = (height - imgHeight) / 2;
+
+            scratchCanvas.image(scratchImage, x, y, imgWidth, imgHeight); //center
+        }
+    </script>
+
+<div>
+  <a href="index.html" ><img src="img/button-return1.png" id="button_white"></a>
+  <img src="img/button-return.png" id="button_red">
+</div>
+</body>
+</html>
